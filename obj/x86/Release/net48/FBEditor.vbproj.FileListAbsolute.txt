@@ -1,0 +1,14 @@
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\Resources\FBEditor.ico
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\FBEditor.exe.config
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\FBEditor.exe
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\FBEditor.pdb
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\ScintillaNET.dll
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\bin\x86\Release\net48\Newtonsoft.Json.dll
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.vbproj.AssemblyReference.cache
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.GeneratedMSBuildEditorConfig.editorconfig
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.AssemblyInfoInputs.cache
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.AssemblyInfo.vb
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.vbproj.CoreCompileInputs.cache
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.vbproj.Up2Date
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.exe
+C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\obj\x86\Release\net48\FBEditor.pdb

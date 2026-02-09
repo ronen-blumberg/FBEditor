@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "W45ljUC6bns=",
+  "success": true,
+  "projectFilePath": "C:\\VS2026-NET-CPP-PROJECTS\\VB.NET\\FBEditor\\FBEditor.vbproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ronbl\\.nuget\\packages\\jacobslusser.scintillanet\\3.6.3\\jacobslusser.scintillanet.3.6.3.nupkg.sha512",
+    "C:\\Users\\ronbl\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

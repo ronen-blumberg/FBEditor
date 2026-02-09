@@ -1,0 +1,14 @@
+is_global = true
+build_property.ApplicationManifest = 
+build_property.StartupObject = FBEditor.Program
+build_property.ApplicationDefaultFont = 
+build_property.ApplicationHighDpiMode = 
+build_property.ApplicationUseCompatibleTextRendering = 
+build_property.ApplicationVisualStyles = 
+build_property.RootNamespace = FBEditor
+build_property.ProjectDir = C:\VS2026-NET-CPP-PROJECTS\VB.NET\FBEditor\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 
