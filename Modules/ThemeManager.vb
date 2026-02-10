@@ -108,6 +108,10 @@ Imports System.Windows.Forms
             ElseIf TypeOf ctrl Is TreeView Then
                 ctrl.BackColor = DarkTreeBack
                 ctrl.ForeColor = DarkTreeFore
+            ElseIf TypeOf ctrl Is ListView Then
+                Dim lv = DirectCast(ctrl, ListView)
+                lv.BackColor = DarkTreeBack
+                lv.ForeColor = DarkTreeFore
             ElseIf TypeOf ctrl Is TextBox OrElse TypeOf ctrl Is RichTextBox Then
                 ctrl.BackColor = DarkTextBoxBack
                 ctrl.ForeColor = DarkTextBoxFore
@@ -120,10 +124,20 @@ Imports System.Windows.Forms
             ElseIf TypeOf ctrl Is ComboBox Then
                 ctrl.BackColor = DarkTextBoxBack
                 ctrl.ForeColor = DarkTextBoxFore
+            ElseIf TypeOf ctrl Is TabControl Then
+                Dim tc = DirectCast(ctrl, TabControl)
+                tc.BackColor = DarkPanel
+                tc.ForeColor = DarkForeground
+                ' Theme each TabPage
+                For Each tp As TabPage In tc.TabPages
+                    tp.BackColor = DarkPanel
+                    tp.ForeColor = DarkForeground
+                Next
             ElseIf TypeOf ctrl Is SplitContainer Then
                 ctrl.BackColor = DarkBorder
-            ElseIf TypeOf ctrl Is TabControl Then
-                ' TabControl styling is limited in WinForms
+            ElseIf TypeOf ctrl Is FlowLayoutPanel Then
+                ctrl.BackColor = DarkPanel
+                ctrl.ForeColor = DarkForeground
             ElseIf TypeOf ctrl Is Panel Then
                 ctrl.BackColor = DarkPanel
                 ctrl.ForeColor = DarkForeground
@@ -154,6 +168,10 @@ Imports System.Windows.Forms
             ElseIf TypeOf ctrl Is TreeView Then
                 ctrl.BackColor = LightTreeBack
                 ctrl.ForeColor = LightTreeFore
+            ElseIf TypeOf ctrl Is ListView Then
+                Dim lv = DirectCast(ctrl, ListView)
+                lv.BackColor = LightTreeBack
+                lv.ForeColor = LightTreeFore
             ElseIf TypeOf ctrl Is TextBox OrElse TypeOf ctrl Is RichTextBox Then
                 ctrl.BackColor = LightTextBoxBack
                 ctrl.ForeColor = LightTextBoxFore
@@ -165,8 +183,19 @@ Imports System.Windows.Forms
             ElseIf TypeOf ctrl Is ComboBox Then
                 ctrl.BackColor = LightTextBoxBack
                 ctrl.ForeColor = LightTextBoxFore
+            ElseIf TypeOf ctrl Is TabControl Then
+                Dim tc = DirectCast(ctrl, TabControl)
+                tc.BackColor = LightPanel
+                tc.ForeColor = LightForeground
+                For Each tp As TabPage In tc.TabPages
+                    tp.BackColor = LightPanel
+                    tp.ForeColor = LightForeground
+                Next
             ElseIf TypeOf ctrl Is SplitContainer Then
                 ctrl.BackColor = LightBorder
+            ElseIf TypeOf ctrl Is FlowLayoutPanel Then
+                ctrl.BackColor = LightPanel
+                ctrl.ForeColor = LightForeground
             ElseIf TypeOf ctrl Is Panel Then
                 ctrl.BackColor = LightPanel
                 ctrl.ForeColor = LightForeground
@@ -215,6 +244,26 @@ Imports System.Windows.Forms
                 Return Color.FromArgb(62, 62, 64)
             End Get
         End Property
+        Public Overrides ReadOnly Property MenuItemSelectedGradientBegin As Color
+            Get
+                Return Color.FromArgb(62, 62, 64)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property MenuItemSelectedGradientEnd As Color
+            Get
+                Return Color.FromArgb(62, 62, 64)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property MenuItemPressedGradientBegin As Color
+            Get
+                Return Color.FromArgb(50, 50, 52)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property MenuItemPressedGradientEnd As Color
+            Get
+                Return Color.FromArgb(50, 50, 52)
+            End Get
+        End Property
         Public Overrides ReadOnly Property MenuStripGradientBegin As Color
             Get
                 Return Color.FromArgb(45, 45, 48)
@@ -245,6 +294,31 @@ Imports System.Windows.Forms
                 Return Color.FromArgb(45, 45, 48)
             End Get
         End Property
+        Public Overrides ReadOnly Property CheckBackground As Color
+            Get
+                Return Color.FromArgb(62, 62, 64)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property CheckPressedBackground As Color
+            Get
+                Return Color.FromArgb(70, 70, 72)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property CheckSelectedBackground As Color
+            Get
+                Return Color.FromArgb(70, 70, 72)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property ButtonSelectedHighlight As Color
+            Get
+                Return Color.FromArgb(62, 62, 64)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property ButtonPressedHighlight As Color
+            Get
+                Return Color.FromArgb(50, 50, 52)
+            End Get
+        End Property
         Public Overrides ReadOnly Property SeparatorDark As Color
             Get
                 Return Color.FromArgb(62, 62, 64)
@@ -253,6 +327,31 @@ Imports System.Windows.Forms
         Public Overrides ReadOnly Property SeparatorLight As Color
             Get
                 Return Color.FromArgb(62, 62, 64)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property StatusStripGradientBegin As Color
+            Get
+                Return Color.FromArgb(0, 122, 204)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property StatusStripGradientEnd As Color
+            Get
+                Return Color.FromArgb(0, 122, 204)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property ToolStripGradientBegin As Color
+            Get
+                Return Color.FromArgb(45, 45, 48)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property ToolStripGradientEnd As Color
+            Get
+                Return Color.FromArgb(45, 45, 48)
+            End Get
+        End Property
+        Public Overrides ReadOnly Property ToolStripGradientMiddle As Color
+            Get
+                Return Color.FromArgb(45, 45, 48)
             End Get
         End Property
     End Class

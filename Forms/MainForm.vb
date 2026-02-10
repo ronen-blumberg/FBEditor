@@ -127,6 +127,7 @@ Imports ScintillaNET
 
         Private Sub InitializeComponent()
             Me.SuspendLayout()
+            Me.AutoScaleMode = AutoScaleMode.Dpi
             Me.Text = APP_NAME
             Me.Size = New Size(1400, 900)
             Me.StartPosition = FormStartPosition.CenterScreen
@@ -594,7 +595,7 @@ Imports ScintillaNET
 
         Private Sub SetupMargins()
             If Settings.ShowLineNumbers Then
-                Dim lineCount = Math.Max(scintilla.Lines.Count, 100)
+                Dim lineCount = Math.Max(scintilla.Lines.Count, 10000)
                 scintilla.Margins(0).Width = scintilla.TextWidth(Style.LineNumber, New String("9"c, lineCount.ToString().Length + 1))
             Else
                 scintilla.Margins(0).Width = 0
@@ -635,6 +636,14 @@ Imports ScintillaNET
             End If
 
             scintilla.Styles(Style.IndentGuide).ForeColor = If(dark, Color.FromArgb(64, 64, 64), Color.FromArgb(192, 192, 192))
+
+            ' Brace matching styles
+            scintilla.Styles(Style.BraceLight).ForeColor = If(dark, Color.FromArgb(220, 220, 100), Color.Blue)
+            scintilla.Styles(Style.BraceLight).BackColor = If(dark, Color.FromArgb(60, 60, 60), Color.FromArgb(220, 220, 255))
+            scintilla.Styles(Style.BraceLight).Bold = True
+            scintilla.Styles(Style.BraceBad).ForeColor = Color.Red
+            scintilla.Styles(Style.BraceBad).BackColor = If(dark, Color.FromArgb(60, 30, 30), Color.FromArgb(255, 220, 220))
+            scintilla.Styles(Style.BraceBad).Bold = True
         End Sub
 #End Region
 
@@ -958,7 +967,36 @@ Imports ScintillaNET
             Dim col = scintilla.GetColumn(scintilla.CurrentPosition) + 1
             lblPosition.Text = $"Ln: {line}  Col: {col}"
             lblLineCount.Text = $"Lines: {scintilla.Lines.Count}"
+
+            ' Brace matching
+            Dim pos = scintilla.CurrentPosition
+            Dim braceFound = False
+            If pos > 0 AndAlso IsBraceChar(scintilla.GetCharAt(pos - 1)) Then
+                Dim match = scintilla.BraceMatch(pos - 1)
+                If match >= 0 Then
+                    scintilla.BraceHighlight(pos - 1, match)
+                Else
+                    scintilla.BraceBadLight(pos - 1)
+                End If
+                braceFound = True
+            ElseIf pos < scintilla.TextLength AndAlso IsBraceChar(scintilla.GetCharAt(pos)) Then
+                Dim match = scintilla.BraceMatch(pos)
+                If match >= 0 Then
+                    scintilla.BraceHighlight(pos, match)
+                Else
+                    scintilla.BraceBadLight(pos)
+                End If
+                braceFound = True
+            End If
+            If Not braceFound Then
+                scintilla.BraceHighlight(ScintillaNET.Scintilla.InvalidPosition, ScintillaNET.Scintilla.InvalidPosition)
+            End If
         End Sub
+
+        Private Shared Function IsBraceChar(c As Integer) As Boolean
+            Dim ch = ChrW(c)
+            Return ch = "("c OrElse ch = ")"c OrElse ch = "["c OrElse ch = "]"c OrElse ch = "{"c OrElse ch = "}"c
+        End Function
 
         Private Sub Scintilla_CharAdded(sender As Object, e As CharAddedEventArgs) Handles scintilla.CharAdded
             If Settings.AutoIndent AndAlso e.Char = 10 Then

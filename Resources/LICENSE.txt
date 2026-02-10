@@ -1,4 +1,4 @@
-FBEditor v4.0 Pro - FreeBASIC IDE with GDB Debugger
+FBEditor v4.1 Pro - FreeBASIC IDE with GDB Debugger
 Copyright (c) 2025 Ronen Blumberg. All rights reserved.
 
 LICENSE AGREEMENT

@@ -69,6 +69,7 @@ Imports System.Text.RegularExpressions
             Dim lines = code.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf).Split(vbLf(0))
             Dim inType = False, inEnum = False, inMultiLineComment = False
             Dim inProc = False ' Track if inside Sub/Function/Property/Constructor/Destructor
+            Dim _currentTypeName As String = ""
 
             For i = 0 To lines.Length - 1
                 Dim line = lines(i).Trim()
@@ -83,21 +84,54 @@ Imports System.Text.RegularExpressions
                     Continue For
                 End If
 
-                ' Track Type/Enum blocks (don't parse inner members at top level)
+                ' Track Type/Enum blocks
                 If Regex.IsMatch(upper, "^\s*TYPE\s+\w+") AndAlso Not upper.Contains(" AS ") Then
                     Dim m = Regex.Match(line, "(?i)type\s+(\w+)")
                     If m.Success Then
+                        _currentTypeName = m.Groups(1).Value
                         items.Add(New OutlineItem() With {
                             .ItemType = OutlineItemType.TypeDef,
-                            .Name = m.Groups(1).Value,
+                            .Name = _currentTypeName,
                             .LineNumber = i + 1
                         })
                     End If
                     inType = True
                     Continue For
                 End If
-                If upper.TrimStart().StartsWith("END TYPE") Then inType = False : Continue For
-                If inType Then Continue For
+                If upper.TrimStart().StartsWith("END TYPE") Then
+                    inType = False
+                    _currentTypeName = ""
+                    Continue For
+                End If
+
+                ' Inside TYPE: parse DECLARE statements and skip field declarations
+                If inType Then
+                    ' DECLARE SUB/FUNCTION/CONSTRUCTOR/DESTRUCTOR/PROPERTY/OPERATOR inside TYPE
+                    Dim typeDeclMatch = Regex.Match(line, "(?i)^\s*declare\s+(static\s+)?(sub|function|constructor|destructor|property|operator)\s*([\w.]*)\s*(\(.*)?")
+                    If typeDeclMatch.Success Then
+                        Dim kind = typeDeclMatch.Groups(2).Value.ToUpper()
+                        Dim mName = typeDeclMatch.Groups(3).Value
+                        Dim fullName = If(_currentTypeName.Length > 0 AndAlso mName.Length > 0,
+                                          _currentTypeName & "." & mName,
+                                          If(mName.Length > 0, mName, _currentTypeName & "." & kind.ToLower()))
+                        Dim itemType = OutlineItemType.DeclareDef
+                        Select Case kind
+                            Case "SUB" : itemType = OutlineItemType.DeclareDef
+                            Case "FUNCTION" : itemType = OutlineItemType.DeclareDef
+                            Case "CONSTRUCTOR" : itemType = OutlineItemType.DeclareDef
+                            Case "DESTRUCTOR" : itemType = OutlineItemType.DeclareDef
+                            Case "PROPERTY" : itemType = OutlineItemType.DeclareDef
+                            Case "OPERATOR" : itemType = OutlineItemType.DeclareDef
+                        End Select
+                        items.Add(New OutlineItem() With {
+                            .ItemType = itemType,
+                            .Name = fullName,
+                            .LineNumber = i + 1,
+                            .Signature = line.Trim()
+                        })
+                    End If
+                    Continue For
+                End If
 
                 If Regex.IsMatch(upper, "^\s*ENUM\s+\w+") Then
                     Dim m = Regex.Match(line, "(?i)enum\s+(\w+)")
@@ -122,8 +156,47 @@ Imports System.Text.RegularExpressions
                     Continue For
                 End If
 
-                ' SUB
-                Dim subMatch = Regex.Match(line, "(?i)^(public\s+|private\s+|static\s+)*sub\s+(\w+)\s*(\(.*)?$")
+                ' CONSTRUCTOR (standalone implementation)
+                Dim ctorMatch = Regex.Match(line, "(?i)^constructor\s+([\w.]+)\s*(\(.*)?")
+                If ctorMatch.Success Then
+                    items.Add(New OutlineItem() With {
+                        .ItemType = OutlineItemType.SubDef,
+                        .Name = ctorMatch.Groups(1).Value & ".constructor",
+                        .LineNumber = i + 1,
+                        .Signature = line
+                    })
+                    inProc = True
+                    Continue For
+                End If
+
+                ' DESTRUCTOR (standalone implementation)
+                Dim dtorMatch = Regex.Match(line, "(?i)^destructor\s+([\w.]+)\s*(\(.*)?")
+                If dtorMatch.Success Then
+                    items.Add(New OutlineItem() With {
+                        .ItemType = OutlineItemType.SubDef,
+                        .Name = dtorMatch.Groups(1).Value & ".destructor",
+                        .LineNumber = i + 1,
+                        .Signature = line
+                    })
+                    inProc = True
+                    Continue For
+                End If
+
+                ' OPERATOR (standalone implementation)
+                Dim operMatch = Regex.Match(line, "(?i)^operator\s+([\w.]+)\s*(\(.*)?")
+                If operMatch.Success Then
+                    items.Add(New OutlineItem() With {
+                        .ItemType = OutlineItemType.SubDef,
+                        .Name = operMatch.Groups(1).Value,
+                        .LineNumber = i + 1,
+                        .Signature = line
+                    })
+                    inProc = True
+                    Continue For
+                End If
+
+                ' SUB (supports ClassName.MethodName dot notation)
+                Dim subMatch = Regex.Match(line, "(?i)^(public\s+|private\s+|static\s+)*sub\s+([\w.]+)\s*(\(.*)?$")
                 If subMatch.Success Then
                     items.Add(New OutlineItem() With {
                         .ItemType = OutlineItemType.SubDef,
@@ -135,8 +208,8 @@ Imports System.Text.RegularExpressions
                     Continue For
                 End If
 
-                ' FUNCTION
-                Dim funcMatch = Regex.Match(line, "(?i)^(public\s+|private\s+|static\s+)*function\s+(\w+)\s*(\(.*)?")
+                ' FUNCTION (supports ClassName.MethodName dot notation)
+                Dim funcMatch = Regex.Match(line, "(?i)^(public\s+|private\s+|static\s+)*function\s+([\w.]+)\s*(\(.*)?")
                 If funcMatch.Success Then
                     Dim dt As String = ""
                     Dim lastParen As Integer = line.LastIndexOf(")"c)
@@ -146,7 +219,7 @@ Imports System.Text.RegularExpressions
                         If asMatch.Success Then dt = asMatch.Groups(1).Value
                     End If
                     If dt.Length = 0 AndAlso lastParen < 0 Then
-                        Dim noParenMatch = Regex.Match(line, "(?i)function\s+\w+\s+as\s+(\w+)")
+                        Dim noParenMatch = Regex.Match(line, "(?i)function\s+[\w.]+\s+as\s+(\w+)")
                         If noParenMatch.Success Then dt = noParenMatch.Groups(1).Value
                     End If
                     items.Add(New OutlineItem() With {
@@ -160,8 +233,8 @@ Imports System.Text.RegularExpressions
                     Continue For
                 End If
 
-                ' PROPERTY
-                Dim propMatch = Regex.Match(line, "(?i)^(public\s+|private\s+)*property\s+(\w+)")
+                ' PROPERTY (supports ClassName.PropertyName dot notation)
+                Dim propMatch = Regex.Match(line, "(?i)^(public\s+|private\s+)*property\s+([\w.]+)")
                 If propMatch.Success Then
                     items.Add(New OutlineItem() With {
                         .ItemType = OutlineItemType.PropertyDef,
@@ -173,13 +246,45 @@ Imports System.Text.RegularExpressions
                 End If
 
                 ' CONST
-                Dim constMatch = Regex.Match(line, "(?i)^const\s+(\w+)")
-                If constMatch.Success Then
-                    items.Add(New OutlineItem() With {
-                        .ItemType = OutlineItemType.ConstDef,
-                        .Name = constMatch.Groups(1).Value,
-                        .LineNumber = i + 1
-                    })
+                If upper.StartsWith("CONST ") Then
+                    Dim constLine = line.Substring(6).Trim()
+                    Dim constUpper = constLine.ToUpper()
+
+                    ' Pattern: CONST AS <type> name1 = val, name2 = val
+                    If constUpper.StartsWith("AS ") Then
+                        Dim afterAs = constLine.Substring(3).Trim()
+                        Dim spacePos = afterAs.IndexOf(" "c)
+                        If spacePos > 0 Then
+                            Dim varList = afterAs.Substring(spacePos + 1).Trim()
+                            For Each cPart In varList.Split(","c)
+                                Dim cName = cPart.Trim()
+                                Dim eqPos = cName.IndexOf("="c)
+                                If eqPos > 0 Then cName = cName.Substring(0, eqPos).Trim()
+                                If cName.Length > 0 AndAlso Regex.IsMatch(cName, "^\w+$") Then
+                                    items.Add(New OutlineItem() With {
+                                        .ItemType = OutlineItemType.ConstDef,
+                                        .Name = cName,
+                                        .LineNumber = i + 1
+                                    })
+                                End If
+                            Next
+                        End If
+                    Else
+                        ' Pattern: CONST name1 = val, name2 AS type = val
+                        For Each cPart In constLine.Split(","c)
+                            Dim cMatch = Regex.Match(cPart.Trim(), "(?i)^(\w+)")
+                            If cMatch.Success Then
+                                Dim cName = cMatch.Groups(1).Value
+                                If cName.ToUpper() <> "AS" Then
+                                    items.Add(New OutlineItem() With {
+                                        .ItemType = OutlineItemType.ConstDef,
+                                        .Name = cName,
+                                        .LineNumber = i + 1
+                                    })
+                                End If
+                            End If
+                        Next
+                    End If
                     Continue For
                 End If
 
@@ -194,8 +299,8 @@ Imports System.Text.RegularExpressions
                     Continue For
                 End If
 
-                ' DECLARE
-                Dim declMatch = Regex.Match(line, "(?i)^declare\s+(sub|function)\s+(\w+)")
+                ' DECLARE (standalone, outside TYPE)
+                Dim declMatch = Regex.Match(line, "(?i)^declare\s+(sub|function|constructor|destructor|property|operator)\s+([\w.]+)")
                 If declMatch.Success Then
                     items.Add(New OutlineItem() With {
                         .ItemType = OutlineItemType.DeclareDef,
