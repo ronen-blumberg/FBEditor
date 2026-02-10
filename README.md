@@ -107,7 +107,7 @@ Built-in AI coding assistant powered by Claude (Anthropic API):
 
 ## Screenshots
 
-*Coming soon*
+[![FBEditor IDE](https://i.postimg.cc/wMtzcvHN/zylwm-msk-2026-02-10-015830.png)](https://postimg.cc/ctNPddv1)
 
 ---
 
