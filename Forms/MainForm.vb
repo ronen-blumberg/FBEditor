@@ -385,8 +385,10 @@ Imports ScintillaNET
             Dim mnuSelAll = AddMenu(mnuEdit, "Select &All", Sub(s, e) scintilla.SelectAll())
             mnuSelAll.ShortcutKeyDisplayString = "Ctrl+A"
             mnuEdit.DropDownItems.Add(New ToolStripSeparator())
-            AddMenu(mnuEdit, "Co&mment Block", Sub(s, e) CommentBlock())
-            AddMenu(mnuEdit, "U&ncomment Block", Sub(s, e) UncommentBlock())
+            Dim mnuComment = AddMenu(mnuEdit, "Co&mment Block", Sub(s, e) CommentBlock(), Keys.Control Or Keys.Oem2)
+            mnuComment.ShortcutKeyDisplayString = "Ctrl+/"
+            Dim mnuUncomment = AddMenu(mnuEdit, "U&ncomment Block", Sub(s, e) UncommentBlock(), Keys.Control Or Keys.Shift Or Keys.Oem2)
+            mnuUncomment.ShortcutKeyDisplayString = "Ctrl+Shift+/"
             mnuEdit.DropDownItems.Add(New ToolStripSeparator())
             AddMenu(mnuEdit, "Toggle Book&mark", Sub(s, e) ToggleBookmark())
             AddMenu(mnuEdit, "Next Bookmark", Sub(s, e) NextBookmark())
@@ -451,10 +453,14 @@ Imports ScintillaNET
                                                           End If
                                                       End Sub
             mnuView.DropDownItems.Add(mnuViewFolding)
-            AddMenu(mnuView, "&Toggle Fold", Sub(s, e) FoldingManager.ToggleFold(scintilla), Keys.Control Or Keys.Shift Or Keys.OemOpenBrackets)
-            AddMenu(mnuView, "Fold &All", Sub(s, e) FoldingManager.FoldAll(scintilla))
-            AddMenu(mnuView, "&Unfold All", Sub(s, e) FoldingManager.UnfoldAll(scintilla))
-            AddMenu(mnuView, "Fold to &Level 1", Sub(s, e) FoldingManager.FoldToLevel(scintilla, 1))
+            Dim mnuToggleFold = AddMenu(mnuView, "&Toggle Fold", Sub(s, e) FoldingManager.ToggleFold(scintilla))
+            mnuToggleFold.ShortcutKeyDisplayString = "Ctrl+Shift+["
+            Dim mnuFoldAll = AddMenu(mnuView, "Fold &All", Sub(s, e) FoldingManager.FoldAll(scintilla))
+            mnuFoldAll.ShortcutKeyDisplayString = "Ctrl+Shift+A"
+            Dim mnuUnfoldAll = AddMenu(mnuView, "&Unfold All", Sub(s, e) FoldingManager.UnfoldAll(scintilla))
+            mnuUnfoldAll.ShortcutKeyDisplayString = "Ctrl+Shift+]"
+            Dim mnuFoldLevel1 = AddMenu(mnuView, "Fold to &Level 1", Sub(s, e) FoldingManager.FoldToLevel(scintilla, 1))
+            mnuFoldLevel1.ShortcutKeyDisplayString = "Ctrl+Shift+1"
 
             mnuView.DropDownItems.Add(New ToolStripSeparator())
             AddMenu(mnuView, "Zoom &In", Sub(s, e) scintilla.ZoomIn())
@@ -1078,6 +1084,26 @@ Imports ScintillaNET
 
         Private Sub Scintilla_ZoomChanged(sender As Object, e As EventArgs) Handles scintilla.ZoomChanged
             SetupMargins()
+        End Sub
+
+        Private Sub Scintilla_KeyDown(sender As Object, e As KeyEventArgs) Handles scintilla.KeyDown
+            ' Folding shortcuts — Scintilla swallows Oem keys so we handle them here
+            If e.Control AndAlso e.Shift AndAlso Settings.ShowFolding Then
+                Select Case e.KeyCode
+                    Case Keys.OemOpenBrackets  ' Ctrl+Shift+[
+                        FoldingManager.ToggleFold(scintilla)
+                        e.Handled = True : e.SuppressKeyPress = True
+                    Case Keys.OemCloseBrackets  ' Ctrl+Shift+]
+                        FoldingManager.UnfoldAll(scintilla)
+                        e.Handled = True : e.SuppressKeyPress = True
+                    Case Keys.A  ' Ctrl+Shift+A
+                        FoldingManager.FoldAll(scintilla)
+                        e.Handled = True : e.SuppressKeyPress = True
+                    Case Keys.D1  ' Ctrl+Shift+1
+                        FoldingManager.FoldToLevel(scintilla, 1)
+                        e.Handled = True : e.SuppressKeyPress = True
+                End Select
+            End If
         End Sub
 #End Region
 
