@@ -61,6 +61,7 @@ Imports ScintillaNET
         Private mnuViewIndentGuides As ToolStripMenuItem
         Private mnuViewProjectExplorer As ToolStripMenuItem
         Private mnuViewOutputPanel As ToolStripMenuItem
+        Private mnuViewCodeFolding As ToolStripMenuItem
         Private mnuEditAutoCompleteEnable As ToolStripMenuItem
         Private mnuEncANSI As ToolStripMenuItem
         Private mnuEncUTF8 As ToolStripMenuItem
@@ -85,6 +86,7 @@ Imports ScintillaNET
         Private _autoCompleteList As String = ""
         Private _baseAutoCompleteList As String = ""
         Private _acTimer As Timer
+        Private _foldTimer As Timer
         Private _initialized As Boolean = False
         Private _findReplaceForm As FindReplaceForm = Nothing  ' BUG FIX: reuse form, prevent leak
 
@@ -111,6 +113,12 @@ Imports ScintillaNET
                                          _acTimer.Stop()
                                          RebuildAutoCompleteList()
                                      End Sub
+
+            _foldTimer = New Timer() With {.Interval = 500, .Enabled = False}
+            AddHandler _foldTimer.Tick, Sub(s, ev)
+                                            _foldTimer.Stop()
+                                            If Settings.ShowFolding Then FoldingManager.UpdateFoldLevels(scintilla)
+                                        End Sub
 
             InitializeComponent()
             ApplyCurrentTheme()
@@ -430,6 +438,25 @@ Imports ScintillaNET
                                                           End Sub
             mnuView.DropDownItems.AddRange(New ToolStripItem() {mnuViewLineNumbers, mnuViewWordWrap, mnuViewWhitespace, mnuViewIndentGuides})
             mnuView.DropDownItems.Add(New ToolStripSeparator())
+
+            ' ---- Folding submenu ----
+            Dim mnuViewFolding = New ToolStripMenuItem("Code &Folding") With {.Checked = Settings.ShowFolding, .CheckOnClick = True}
+            AddHandler mnuViewFolding.CheckedChanged, Sub()
+                                                          Settings.ShowFolding = mnuViewFolding.Checked
+                                                          If mnuViewFolding.Checked Then
+                                                              FoldingManager.SetupFoldMargin(scintilla, Settings.DarkTheme)
+                                                              FoldingManager.UpdateFoldLevels(scintilla)
+                                                          Else
+                                                              FoldingManager.HideFoldMargin(scintilla)
+                                                          End If
+                                                      End Sub
+            mnuView.DropDownItems.Add(mnuViewFolding)
+            AddMenu(mnuView, "&Toggle Fold", Sub(s, e) FoldingManager.ToggleFold(scintilla), Keys.Control Or Keys.Shift Or Keys.OemOpenBrackets)
+            AddMenu(mnuView, "Fold &All", Sub(s, e) FoldingManager.FoldAll(scintilla))
+            AddMenu(mnuView, "&Unfold All", Sub(s, e) FoldingManager.UnfoldAll(scintilla))
+            AddMenu(mnuView, "Fold to &Level 1", Sub(s, e) FoldingManager.FoldToLevel(scintilla, 1))
+
+            mnuView.DropDownItems.Add(New ToolStripSeparator())
             AddMenu(mnuView, "Zoom &In", Sub(s, e) scintilla.ZoomIn())
             AddMenu(mnuView, "Zoom &Out", Sub(s, e) scintilla.ZoomOut())
             AddMenu(mnuView, "&Reset Zoom", Sub(s, e) scintilla.Zoom = 0)
@@ -591,6 +618,13 @@ Imports ScintillaNET
             SetupMargins()
             ApplyEditorTheme()
             scintilla.Technology = Technology.DirectWrite
+
+            ' ---- Folding ----
+            If Settings.ShowFolding Then
+                FoldingManager.SetupFoldMargin(scintilla, Settings.DarkTheme)
+            Else
+                FoldingManager.HideFoldMargin(scintilla)
+            End If
         End Sub
 
         Private Sub SetupMargins()
@@ -1023,6 +1057,7 @@ Imports ScintillaNET
                 If Char.IsLetterOrDigit(ch) OrElse ch = "_"c OrElse ch = "#"c Then ShowAutoComplete(False)
             End If
             _acTimer.Stop() : _acTimer.Start()
+            If Settings.ShowFolding Then _foldTimer.Stop() : _foldTimer.Start()
         End Sub
 
         Private Sub Scintilla_MarginClick(sender As Object, e As MarginClickEventArgs) Handles scintilla.MarginClick
@@ -1035,6 +1070,9 @@ Imports ScintillaNET
                     ' Toggle breakpoint
                     ToggleBreakpointOnLine(line)
                 End If
+            ElseIf e.Margin = 3 Then
+                ' Fold margin click — toggle fold
+                scintilla.Lines(line).ToggleFold()
             End If
         End Sub
 
