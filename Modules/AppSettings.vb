@@ -97,7 +97,7 @@ Imports System.Text.RegularExpressions
     ''' </summary>
     Public Module AppGlobals
         Public Const APP_NAME As String = "FBEditor"
-        Public Const APP_VERSION As String = "4.2.0"
+        Public Const APP_VERSION As String = "4.3.0"
         Public Const APP_AUTHOR As String = "Ronen Blumberg"
         Public Const APP_COPYRIGHT As String = "Copyright © 2026 Ronen Blumberg"
         Public Const MAX_RECENT_FILES As Integer = 10

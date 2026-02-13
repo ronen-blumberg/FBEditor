@@ -454,7 +454,7 @@ Imports ScintillaNET
                                                       End Sub
             mnuView.DropDownItems.Add(mnuViewFolding)
             Dim mnuToggleFold = AddMenu(mnuView, "&Toggle Fold", Sub(s, e) FoldingManager.ToggleFold(scintilla))
-            mnuToggleFold.ShortcutKeyDisplayString = "Ctrl+Shift+["
+            mnuToggleFold.ShortcutKeyDisplayString = "Ctrl+Shift+T"
             Dim mnuFoldAll = AddMenu(mnuView, "Fold &All", Sub(s, e) FoldingManager.FoldAll(scintilla))
             mnuFoldAll.ShortcutKeyDisplayString = "Ctrl+Shift+A"
             Dim mnuUnfoldAll = AddMenu(mnuView, "&Unfold All", Sub(s, e) FoldingManager.UnfoldAll(scintilla))
@@ -872,6 +872,7 @@ Imports ScintillaNET
             _switchingFile = False
 
             UpdateFileList() : UpdateTreeView() : UpdateEncodingUI() : UpdateTitle() : UpdateOutline() : SetupMargins()
+            If Settings.ShowFolding Then FoldingManager.UpdateFoldLevels(scintilla)
 
             ' Restore breakpoint markers for this file
             RestoreBreakpointMarkers()
@@ -1087,19 +1088,19 @@ Imports ScintillaNET
         End Sub
 
         Private Sub Scintilla_KeyDown(sender As Object, e As KeyEventArgs) Handles scintilla.KeyDown
-            ' Folding shortcuts — Scintilla swallows Oem keys so we handle them here
+            ' Folding shortcuts — Scintilla swallows some key combos so we handle them here
             If e.Control AndAlso e.Shift AndAlso Settings.ShowFolding Then
                 Select Case e.KeyCode
-                    Case Keys.OemOpenBrackets  ' Ctrl+Shift+[
+                    Case Keys.T  ' Ctrl+Shift+T — Toggle Fold
                         FoldingManager.ToggleFold(scintilla)
                         e.Handled = True : e.SuppressKeyPress = True
-                    Case Keys.OemCloseBrackets  ' Ctrl+Shift+]
+                    Case Keys.OemCloseBrackets  ' Ctrl+Shift+] — Unfold All
                         FoldingManager.UnfoldAll(scintilla)
                         e.Handled = True : e.SuppressKeyPress = True
-                    Case Keys.A  ' Ctrl+Shift+A
+                    Case Keys.A  ' Ctrl+Shift+A — Fold All
                         FoldingManager.FoldAll(scintilla)
                         e.Handled = True : e.SuppressKeyPress = True
-                    Case Keys.D1  ' Ctrl+Shift+1
+                    Case Keys.D1  ' Ctrl+Shift+1 — Fold to Level 1
                         FoldingManager.FoldToLevel(scintilla, 1)
                         e.Handled = True : e.SuppressKeyPress = True
                 End Select
