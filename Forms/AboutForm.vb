@@ -87,8 +87,8 @@ Imports System.Windows.Forms
 
             Dim lblDesc As New Label() With {
                 .Text = "FBEditor is a modern FreeBASIC IDE with Scintilla editor," & vbCrLf &
-                        "AI-powered coding assistance (Claude), full build system," & vbCrLf &
-                        "UTF-8/ANSI encoding, dark/light themes, and code outline.",
+                        "Window9 Visual Form Designer, AI coding assistant (Claude)," & vbCrLf &
+                        "GDB debugger, full build system, dark/light themes.",
                 .TextAlign = ContentAlignment.MiddleCenter,
                 .Location = New Point(10, y),
                 .Size = New Size(Me.ClientSize.Width - 20, 56),

@@ -63,6 +63,17 @@ Public NotInheritable Class UserSettings
 
     <UserScopedSetting()>
     <DefaultSettingValue("")>
+    Public Property W9DocPath As String
+        Get
+            Return CStr(Me("W9DocPath"))
+        End Get
+        Set(value As String)
+            Me("W9DocPath") = value
+        End Set
+    End Property
+
+    <UserScopedSetting()>
+    <DefaultSettingValue("")>
     Public Property APIKeyFilePath As String
         Get
             Return CStr(Me("APIKeyFilePath"))

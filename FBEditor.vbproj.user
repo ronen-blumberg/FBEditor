@@ -11,11 +11,26 @@
     <Compile Update="Forms\FindReplaceForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\FormDesignerPanel.vb">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="Forms\GoToLineForm.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\MainForm.vb">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\W9DesignerCanvas.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\W9MenuDesigner.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\W9PropertyPanel.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\W9ToolboxPanel.vb">
+      <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
 </Project>

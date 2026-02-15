@@ -48,6 +48,7 @@ Imports System.Text.RegularExpressions
         Public FBC32Path As String = ""
         Public FBC64Path As String = ""
         Public FBDocPath As String = ""
+        Public W9DocPath As String = ""       ' Window9 documentation CHM
         Public APIKeyFilePath As String = ""
         Public GDBPath As String = ""          ' GDB debugger path
         Public TargetType As Integer = 0       ' 0=Console, 1=GUI, 2=DLL, 3=Static Lib
@@ -97,7 +98,7 @@ Imports System.Text.RegularExpressions
     ''' </summary>
     Public Module AppGlobals
         Public Const APP_NAME As String = "FBEditor"
-        Public Const APP_VERSION As String = "4.3.0"
+        Public Const APP_VERSION As String = "5.0.0"
         Public Const APP_AUTHOR As String = "Ronen Blumberg"
         Public Const APP_COPYRIGHT As String = "Copyright © 2026 Ronen Blumberg"
         Public Const MAX_RECENT_FILES As Integer = 10
@@ -148,6 +149,7 @@ Imports System.Text.RegularExpressions
             Build.FBC32Path = US.FBC32Path
             Build.FBC64Path = US.FBC64Path
             Build.FBDocPath = US.FBDocPath
+            Build.W9DocPath = US.W9DocPath
             Build.APIKeyFilePath = US.APIKeyFilePath
             Build.GDBPath = US.GDBPath
             Build.TargetType = US.TargetType
@@ -201,6 +203,7 @@ Imports System.Text.RegularExpressions
             US.FBC32Path = Build.FBC32Path
             US.FBC64Path = Build.FBC64Path
             US.FBDocPath = Build.FBDocPath
+            US.W9DocPath = Build.W9DocPath
             US.APIKeyFilePath = Build.APIKeyFilePath
             US.GDBPath = Build.GDBPath
             US.TargetType = Build.TargetType

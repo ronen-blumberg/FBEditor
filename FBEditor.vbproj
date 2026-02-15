@@ -6,11 +6,11 @@
     <RootNamespace>FBEditor</RootNamespace>
     <AssemblyName>FBEditor</AssemblyName>
     <UseWindowsForms>true</UseWindowsForms>
-    <Version>4.3.0</Version>
-    <FileVersion>4.3.0.0</FileVersion>
-    <AssemblyVersion>4.3.0.0</AssemblyVersion>
+    <Version>5.0.0</Version>
+    <FileVersion>5.0.0.0</FileVersion>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
     <Product>FBEditor</Product>
-    <Description>FreeBASIC IDE with GDB Debugger</Description>
+    <Description>FreeBASIC IDE with GDB Debugger and Window9 Visual Form Designer</Description>
     <ApplicationIcon>Resources\FBEditor.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>FBEditor.Program</StartupObject>

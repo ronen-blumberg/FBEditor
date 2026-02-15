@@ -40,6 +40,7 @@ Imports System.Windows.Forms
         Private txtFBC32Path As TextBox
         Private txtFBC64Path As TextBox
         Private txtFBDocPath As TextBox
+        Private txtW9DocPath As TextBox
         Private txtAPIKeyPath As TextBox
         Private txtOutputFile As TextBox
         Private txtIncludePaths As TextBox
@@ -65,13 +66,13 @@ Imports System.Windows.Forms
             Me.MinimizeBox = False
             Me.ShowInTaskbar = False
             Me.StartPosition = FormStartPosition.CenterParent
-            Me.ClientSize = New Size(540, 530)
+            Me.ClientSize = New Size(560, 640)
             Me.Font = New Font("Segoe UI", 9)
 
             ' === Tab Control ===
             tabOptions = New TabControl() With {
                 .Location = New Point(8, 8),
-                .Size = New Size(524, 430),
+                .Size = New Size(544, 540),
                 .Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right Or AnchorStyles.Bottom
             }
 
@@ -87,6 +88,7 @@ Imports System.Windows.Forms
 
             ' === Paths Tab ===
             tabPaths = New TabPage("Paths")
+            tabPaths.AutoScroll = True
             CreatePathsTab()
             tabOptions.TabPages.Add(tabPaths)
 
@@ -94,7 +96,7 @@ Imports System.Windows.Forms
 
             ' === Command Preview ===
             lblCmdPreview = New Label() With {
-                .Location = New Point(8, 444),
+                .Location = New Point(8, 554),
                 .Size = New Size(300, 36),
                 .Font = New Font("Consolas", 8.25F),
                 .BackColor = Color.FromArgb(240, 240, 240),
@@ -108,7 +110,7 @@ Imports System.Windows.Forms
             btnOK = New Button() With {
                 .Text = "OK",
                 .Size = New Size(80, 30),
-                .Location = New Point(310, 448),
+                .Location = New Point(310, 558),
                 .DialogResult = DialogResult.OK
             }
             AddHandler btnOK.Click, AddressOf BtnOK_Click
@@ -117,7 +119,7 @@ Imports System.Windows.Forms
             btnCancel = New Button() With {
                 .Text = "Cancel",
                 .Size = New Size(80, 30),
-                .Location = New Point(395, 448),
+                .Location = New Point(395, 558),
                 .DialogResult = DialogResult.Cancel
             }
             Me.Controls.Add(btnCancel)
@@ -125,7 +127,7 @@ Imports System.Windows.Forms
             btnApply = New Button() With {
                 .Text = "Apply",
                 .Size = New Size(70, 30),
-                .Location = New Point(480, 448)
+                .Location = New Point(480, 558)
             }
             AddHandler btnApply.Click, AddressOf BtnApply_Click
             Me.Controls.Add(btnApply)
@@ -238,8 +240,8 @@ Imports System.Windows.Forms
 
         Private Sub CreatePathsTab()
             Dim y As Integer = 8
-            Dim txW As Integer = 380
-            Dim btnX As Integer = 400
+            Dim txW As Integer = 400
+            Dim btnX As Integer = 420
 
             ' FBC Path
             tabPaths.Controls.Add(MakeLabel("FreeBASIC Compiler (fbc32.exe / fbc.exe):", 8, y))
@@ -249,7 +251,7 @@ Imports System.Windows.Forms
             Dim btnBrowseFBC As New Button() With {.Text = "...", .Size = New Size(32, 23), .Location = New Point(btnX, y)}
             AddHandler btnBrowseFBC.Click, Sub() BrowseForExe(txtFBCPath, "FreeBASIC Compiler (fbc*.exe)|fbc*.exe;fbc32.exe;fbc64.exe|All (*.exe)|*.exe")
             tabPaths.Controls.Add(btnBrowseFBC)
-            Dim btnAutoDetect As New Button() With {.Text = "Auto", .Size = New Size(52, 23), .Location = New Point(436, y)}
+            Dim btnAutoDetect As New Button() With {.Text = "Auto", .Size = New Size(52, 23), .Location = New Point(456, y)}
             AddHandler btnAutoDetect.Click, AddressOf AutoDetectFBC
             tabPaths.Controls.Add(btnAutoDetect)
             y += 30
@@ -284,6 +286,16 @@ Imports System.Windows.Forms
             tabPaths.Controls.Add(btnBrowseDoc)
             y += 30
 
+            ' Window9 Documentation Path
+            tabPaths.Controls.Add(MakeLabel("Window9 Documentation (.chm) - Shift+F1 to open:", 8, y))
+            y += 18
+            txtW9DocPath = New TextBox() With {.Location = New Point(8, y), .Size = New Size(txW, 23)}
+            tabPaths.Controls.Add(txtW9DocPath)
+            Dim btnBrowseW9Doc As New Button() With {.Text = "...", .Size = New Size(32, 23), .Location = New Point(btnX, y)}
+            AddHandler btnBrowseW9Doc.Click, Sub() BrowseForFile(txtW9DocPath, "CHM Files (*.chm)|*.chm|All Files (*.*)|*.*")
+            tabPaths.Controls.Add(btnBrowseW9Doc)
+            y += 30
+
             ' API Key File Path
             tabPaths.Controls.Add(MakeLabel("Anthropic API Key File (.txt):", 8, y))
             y += 18
@@ -297,7 +309,7 @@ Imports System.Windows.Forms
             ' Output Filename
             tabPaths.Controls.Add(MakeLabel("Output Filename (leave blank for default):", 8, y))
             y += 18
-            txtOutputFile = New TextBox() With {.Location = New Point(8, y), .Size = New Size(480, 23)}
+            txtOutputFile = New TextBox() With {.Location = New Point(8, y), .Size = New Size(500, 23)}
             tabPaths.Controls.Add(txtOutputFile)
             y += 30
 
@@ -305,7 +317,7 @@ Imports System.Windows.Forms
             tabPaths.Controls.Add(MakeLabel("Include Paths (one per line):", 8, y))
             y += 18
             txtIncludePaths = New TextBox() With {
-                .Location = New Point(8, y), .Size = New Size(480, 44),
+                .Location = New Point(8, y), .Size = New Size(500, 44),
                 .Multiline = True, .ScrollBars = ScrollBars.Vertical
             }
             tabPaths.Controls.Add(txtIncludePaths)
@@ -315,7 +327,7 @@ Imports System.Windows.Forms
             tabPaths.Controls.Add(MakeLabel("Library Paths (one per line):", 8, y))
             y += 18
             txtLibraryPaths = New TextBox() With {
-                .Location = New Point(8, y), .Size = New Size(480, 44),
+                .Location = New Point(8, y), .Size = New Size(500, 44),
                 .Multiline = True, .ScrollBars = ScrollBars.Vertical
             }
             tabPaths.Controls.Add(txtLibraryPaths)
@@ -325,7 +337,7 @@ Imports System.Windows.Forms
             tabPaths.Controls.Add(MakeLabel("Extra Linker Options:", 8, y))
             y += 18
             txtExtraLinker = New TextBox() With {
-                .Location = New Point(8, y), .Size = New Size(480, 38),
+                .Location = New Point(8, y), .Size = New Size(500, 38),
                 .Multiline = True
             }
             tabPaths.Controls.Add(txtExtraLinker)
@@ -379,6 +391,7 @@ Imports System.Windows.Forms
             txtFBC32Path.Text = b.FBC32Path
             txtFBC64Path.Text = b.FBC64Path
             txtFBDocPath.Text = b.FBDocPath
+            txtW9DocPath.Text = b.W9DocPath
             txtAPIKeyPath.Text = b.APIKeyFilePath
             txtOutputFile.Text = b.OutputFile
             txtIncludePaths.Text = b.IncludePaths.Replace(";", Environment.NewLine)
@@ -416,6 +429,7 @@ Imports System.Windows.Forms
             b.FBC32Path = txtFBC32Path.Text
             b.FBC64Path = txtFBC64Path.Text
             b.FBDocPath = txtFBDocPath.Text
+            b.W9DocPath = txtW9DocPath.Text
             b.APIKeyFilePath = txtAPIKeyPath.Text
             b.OutputFile = txtOutputFile.Text
             b.IncludePaths = txtIncludePaths.Text.Replace(Environment.NewLine, ";").Replace(vbCr, ";")

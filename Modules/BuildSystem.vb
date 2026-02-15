@@ -161,6 +161,25 @@ Imports System.Text
             If Not String.IsNullOrEmpty(Build.ExtraCompilerOpts?.Trim()) Then sb.Append(" " & Build.ExtraCompilerOpts.Trim())
             If Not String.IsNullOrEmpty(Build.ExtraLinkerOpts?.Trim()) Then sb.Append($" -Wl ""{Build.ExtraLinkerOpts.Trim()}""")
 
+            ' Window9 project flags (v5.0.0)
+            If ProjectManager.IsWindow9Project Then
+                Dim w9Flags = ProjectManager.GetProjectCompilerFlags()
+                If Not String.IsNullOrEmpty(w9Flags) Then
+                    ' Only add -s gui if not already set by TargetType
+                    If Build.TargetType <> 1 AndAlso w9Flags.Contains("-s gui") Then
+                        sb.Append(" -s gui")
+                    End If
+                    ' Add Window9 include/lib paths
+                    Dim proj = ProjectManager.CurrentProject
+                    If Not String.IsNullOrEmpty(proj.Window9IncludePath) Then
+                        sb.Append($" -i ""{proj.Window9IncludePath}""")
+                    End If
+                    If Not String.IsNullOrEmpty(proj.Window9LibPath) Then
+                        sb.Append($" -p ""{proj.Window9LibPath}""")
+                    End If
+                End If
+            End If
+
             ' Source file last
             sb.Append($" ""{sourceFile}""")
             Return sb.ToString()

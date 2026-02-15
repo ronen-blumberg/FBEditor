@@ -90,6 +90,14 @@ Imports ScintillaNET
         Private _initialized As Boolean = False
         Private _findReplaceForm As FindReplaceForm = Nothing  ' BUG FIX: reuse form, prevent leak
 
+        ' ---- Visual Form Designer (v5.0.0) ----
+        Private _designerPanel As FormDesignerPanel = Nothing
+        Private _pnlEditorArea As Panel = Nothing     ' Holds scintilla + cboOpenFiles
+        Private _isDesignView As Boolean = False
+        Private _mnuViewDesigner As ToolStripMenuItem
+        Private _btnDesignToggle As ToolStripButton
+        Private _mnuProjectType As ToolStripMenuItem
+
         ' ---- Debugger ----
         Private WithEvents _debugger As New GDBDebugger()
         Private _compilerErrors As New List(Of CompilerError)()
@@ -184,16 +192,22 @@ Imports ScintillaNET
             cboOpenFiles = New ComboBox() With {.Dock = DockStyle.Top, .DropDownStyle = ComboBoxStyle.DropDownList, .Font = New Font("Segoe UI", 9)}
             scintilla = New Scintilla() With {.Dock = DockStyle.Fill}
 
-            Dim pnlEditor As New Panel() With {.Dock = DockStyle.Fill}
-            pnlEditor.Controls.Add(scintilla)
-            pnlEditor.Controls.Add(cboOpenFiles)
+            _pnlEditorArea = New Panel() With {.Dock = DockStyle.Fill}
+            _pnlEditorArea.Controls.Add(scintilla)
+            _pnlEditorArea.Controls.Add(cboOpenFiles)
+
+            ' ---- Visual Form Designer (hidden by default) ----
+            _designerPanel = New FormDesignerPanel() With {.Dock = DockStyle.Fill, .Visible = False}
+            AddHandler _designerPanel.DesignDirtyChanged, Sub(dirty As Boolean) UpdateTitle()
+            AddHandler _designerPanel.StatusTextChanged, Sub(text As String) lblStatus.Text = text
 
             ' ---- Output Panel ----
             BuildOutputPanel()
 
             ' ---- Main Splitters ----
             splitEditor = New SplitContainer() With {.Dock = DockStyle.Fill, .Orientation = Orientation.Horizontal, .SplitterWidth = 4, .SplitterDistance = 500}
-            splitEditor.Panel1.Controls.Add(pnlEditor)
+            splitEditor.Panel1.Controls.Add(_designerPanel)
+            splitEditor.Panel1.Controls.Add(_pnlEditorArea)
             splitEditor.Panel2.Controls.Add(tabOutput)
 
             splitMain = New SplitContainer() With {.Dock = DockStyle.Fill, .SplitterWidth = 4, .SplitterDistance = 250}
@@ -475,6 +489,14 @@ Imports ScintillaNET
                                                  mnuViewOutputPanel.Checked = True
                                                  tabOutput.SelectedTab = tabPageAIChat
                                              End Sub)
+            mnuView.DropDownItems.Add(New ToolStripSeparator())
+
+            ' ---- Window9 Visual Designer (v5.0.0) ----
+            _mnuViewDesigner = New ToolStripMenuItem("&Window9 Form Designer") With {.ShortcutKeys = Keys.F7}
+            AddHandler _mnuViewDesigner.Click, Sub(s, e) ToggleDesignView()
+            mnuView.DropDownItems.Add(_mnuViewDesigner)
+            AddMenu(mnuView, "Generate Window9 &Code", Sub(s, e) DoGenerateW9Code())
+            AddMenu(mnuView, "Window9 &Menu Designer...", Sub(s, e) DoOpenW9MenuDesigner())
 
             ' ---- BUILD ----
             Dim mnuBuild = New ToolStripMenuItem("&Build")
@@ -485,6 +507,28 @@ Imports ScintillaNET
             AddMenu(mnuBuild, "&Quick Run", Sub(s, e) DoQuickRun())
             AddMenu(mnuBuild, "&Syntax Check Only", Sub(s, e) DoSyntaxCheck())
             mnuBuild.DropDownItems.Add(New ToolStripSeparator())
+
+            ' Project Type submenu (v5.0.0)
+            _mnuProjectType = New ToolStripMenuItem("&Project Type")
+            Dim mnuProjConsole = New ToolStripMenuItem("&Console Application") With {.Checked = True, .Tag = ProjectType.ConsoleApp}
+            Dim mnuProjGUI = New ToolStripMenuItem("&GUI Application (-s gui)") With {.Tag = ProjectType.GUIApp}
+            Dim mnuProjW9 = New ToolStripMenuItem("&Window9 Forms Application") With {.Tag = ProjectType.Window9FormsApp}
+            Dim projItems = {mnuProjConsole, mnuProjGUI, mnuProjW9}
+            For Each pi In projItems
+                AddHandler pi.Click, Sub(s, e)
+                                         Dim item = DirectCast(s, ToolStripMenuItem)
+                                         Dim pt = DirectCast(item.Tag, ProjectType)
+                                         ProjectManager.NewProject(pt)
+                                         For Each other In projItems
+                                             other.Checked = (other Is item)
+                                         Next
+                                         UpdateDesignerAvailability()
+                                     End Sub
+            Next
+            _mnuProjectType.DropDownItems.AddRange(projItems)
+            mnuBuild.DropDownItems.Add(_mnuProjectType)
+            mnuBuild.DropDownItems.Add(New ToolStripSeparator())
+
             AddMenu(mnuBuild, "Build &Options...", Sub(s, e) ShowBuildOptions())
 
             ' ---- DEBUG ----
@@ -530,6 +574,7 @@ Imports ScintillaNET
             ' ---- HELP ----
             Dim mnuHelp = New ToolStripMenuItem("&Help")
             AddMenu(mnuHelp, "&Local FreeBASIC Help", Sub(s, e) OpenFBHelp(), Keys.F1)
+            AddMenu(mnuHelp, "&Window9 Help", Sub(s, e) OpenW9Help(), Keys.Shift Or Keys.F1)
             AddMenu(mnuHelp, "FreeBASIC &Online Documentation", Sub(s, e) SafeProcessStart("https://www.freebasic.net/wiki"))
             mnuHelp.DropDownItems.Add(New ToolStripSeparator())
             AddMenu(mnuHelp, "&About " & APP_NAME & "...", Sub(s, e) ShowAbout())
@@ -560,6 +605,11 @@ Imports ScintillaNET
                                                                      mnuViewOutputPanel.Checked = True
                                                                      tabOutput.SelectedTab = tabPageAIChat
                                                                  End Sub) With {.ToolTipText = "AI Chat (Claude)"})
+            toolMain.Items.Add(New ToolStripSeparator())
+            _btnDesignToggle = New ToolStripButton("Design", Nothing, Sub() ToggleDesignView()) With {
+                .ToolTipText = "Toggle Code/Design View (F7)"
+            }
+            toolMain.Items.Add(_btnDesignToggle)
         End Sub
 
         Private Sub BuildDebugToolbar()
@@ -1763,6 +1813,37 @@ Imports ScintillaNET
             End If
         End Sub
 
+        Private Sub OpenW9Help()
+            ' Try configured path first
+            If Not String.IsNullOrEmpty(Build.W9DocPath) AndAlso File.Exists(Build.W9DocPath) Then
+                SafeProcessStart(Build.W9DocPath) : Return
+            End If
+            ' Try to find Window9.chm near the FBC path
+            If Not String.IsNullOrEmpty(Build.FBCPath) Then
+                Dim fbDir = Path.GetDirectoryName(Path.GetDirectoryName(Build.FBCPath))
+                For Each searchDir In {"inc\Window9", "inc\window9", "inc", "doc"}
+                    Dim p = Path.Combine(fbDir, searchDir, "Window9.chm")
+                    If File.Exists(p) Then
+                        SafeProcessStart(p)
+                        Return
+                    End If
+                Next
+            End If
+            ' Try Window9 include path from project manager
+            If ProjectManager.CurrentProject IsNot Nothing AndAlso
+               Not String.IsNullOrEmpty(ProjectManager.CurrentProject.Window9IncludePath) Then
+                Dim w9Dir = ProjectManager.CurrentProject.Window9IncludePath
+                Dim p = Path.Combine(w9Dir, "Window9.chm")
+                If File.Exists(p) Then
+                    SafeProcessStart(p)
+                    Return
+                End If
+            End If
+            MessageBox.Show("Window9 documentation not found." & vbCrLf & vbCrLf &
+                            "Set the path in Build Options → Paths → Window9 Documentation.",
+                            APP_NAME, MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End Sub
+
         Private Sub ShowAbout()
             Dim dlg As New AboutForm()
             dlg.ShowDialog(Me)
@@ -1884,5 +1965,102 @@ Imports ScintillaNET
             End If
         End Sub
 #End Region
+
+#Region "Window9 Visual Form Designer (v5.0.0)"
+
+        ''' <summary>Toggle between Code view and Design view (like VS F7).</summary>
+        Private Sub ToggleDesignView()
+            _isDesignView = Not _isDesignView
+
+            If _isDesignView Then
+                ' Switch to Design view
+                _pnlEditorArea.Visible = False
+                _designerPanel.Visible = True
+                _designerPanel.BringToFront()
+                _btnDesignToggle.Text = "Code"
+                _btnDesignToggle.ToolTipText = "Switch to Code View (F7)"
+                _mnuViewDesigner.Text = "Switch to &Code View"
+                lblStatus.Text = "Design View — drag gadgets from the Toolbox onto the form"
+            Else
+                ' Switch to Code view
+                _designerPanel.Visible = False
+                _pnlEditorArea.Visible = True
+                _pnlEditorArea.BringToFront()
+                _btnDesignToggle.Text = "Design"
+                _btnDesignToggle.ToolTipText = "Switch to Design View (F7)"
+                _mnuViewDesigner.Text = "&Window9 Form Designer"
+                lblStatus.Text = "Code View"
+            End If
+        End Sub
+
+        ''' <summary>Update designer availability based on project type.</summary>
+        Private Sub UpdateDesignerAvailability()
+            Dim isW9 = ProjectManager.IsWindow9Project
+            _mnuViewDesigner.Enabled = True  ' Always accessible
+            _btnDesignToggle.Enabled = True
+
+            If isW9 AndAlso Not _isDesignView Then
+                ' Optionally auto-switch to design view for W9 projects
+                lblStatus.Text = "Window9 Forms project — press F7 or click Design to open the visual designer"
+            End If
+        End Sub
+
+        ''' <summary>Generate Window9 code from the designer and insert/open in editor.</summary>
+        Private Sub DoGenerateW9Code()
+            If _designerPanel Is Nothing Then Return
+
+            Dim code = _designerPanel.GetGeneratedCode()
+            If String.IsNullOrEmpty(code) Then
+                MessageBox.Show("No gadgets on the form. Add some gadgets first.", APP_NAME,
+                                MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            ' Ask: insert into current file, or create new file?
+            Dim result = MessageBox.Show(
+                "Generated " & _designerPanel.FormDesign.Gadgets.Count & " gadget(s)." & vbCrLf & vbCrLf &
+                "Yes = Create a new file with the generated code" & vbCrLf &
+                "No = Replace current file contents" & vbCrLf &
+                "Cancel = Just copy to clipboard",
+                "Generate Window9 Code", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
+
+            Select Case result
+                Case DialogResult.Yes
+                    ' New file
+                    DoNewFile()
+                    scintilla.Text = code
+                    scintilla.EmptyUndoBuffer()
+                    lblStatus.Text = "Window9 code generated in new file"
+
+                Case DialogResult.No
+                    ' Replace current
+                    scintilla.Text = code
+                    scintilla.EmptyUndoBuffer()
+                    lblStatus.Text = "Window9 code generated — replaced current file"
+
+                Case DialogResult.Cancel
+                    ' Clipboard
+                    Clipboard.SetText(code)
+                    lblStatus.Text = "Window9 code copied to clipboard"
+            End Select
+
+            ' Switch to code view to see the result
+            If _isDesignView Then ToggleDesignView()
+        End Sub
+
+        ''' <summary>Open the menu designer dialog.</summary>
+        Private Sub DoOpenW9MenuDesigner()
+            If _designerPanel Is Nothing Then Return
+            Dim dlg As New W9MenuDesigner(_designerPanel.FormDesign)
+            If dlg.ShowDialog(Me) = DialogResult.OK Then
+                _designerPanel.FormDesign.MenuItems = dlg.ResultMenuItems
+                _designerPanel.Canvas.RefreshDesign()
+                lblStatus.Text = "Menus updated — " & dlg.ResultMenuItems.Count & " top-level menu(s)"
+            End If
+            dlg.Dispose()
+        End Sub
+
+#End Region
+
     End Class
 

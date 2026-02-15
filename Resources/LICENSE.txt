@@ -1,5 +1,5 @@
-FBEditor v4.3 Pro - FreeBASIC IDE with GDB Debugger
-Copyright (c) 2025 Ronen Blumberg. All rights reserved.
+FBEditor v5.0.0 Pro - FreeBASIC IDE with Visual Form Designer & GDB Debugger
+Copyright (c) 2026 Ronen Blumberg. All rights reserved.
 
 LICENSE AGREEMENT
 
@@ -20,3 +20,7 @@ This software includes the following third-party libraries:
 - Scintilla (License) - https://www.scintilla.org
 
 .NET Framework 4.8 is required and is a product of Microsoft Corporation.
+
+The Visual Form Designer generates code for the Window9 GUI library by
+Thomas Freiherr (tjf) - https://users.freebasic-portal.de/tjf/Projekte/Window9/
+Window9 is a separate project with its own license terms.
